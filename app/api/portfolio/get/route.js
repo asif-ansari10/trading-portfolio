@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/app/api/auth/[...nextauth]/route";
-import connectToDB from "@/lib/db";
+import {connectToDB} from "@/lib/db";
 import Holding from "@/models/Holding";
 
 export async function GET() {
