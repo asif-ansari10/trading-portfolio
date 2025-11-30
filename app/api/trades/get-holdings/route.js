@@ -1,30 +1,25 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { auth } from "@/app/api/auth/[...nextauth]/route";
-import {connectToDB} from "@/lib/db";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import connectToDB from "@/lib/db";
 import Holding from "@/models/Holding";
 
 export async function GET() {
   try {
     await connectToDB();
 
-    const session = await getServerSession(auth);
+    const session = await getServerSession(authOptions);
 
-    console.log("SESSION DATA:", session);  // 🔥 CHECK THIS
-
-    if (!session) return NextResponse.json({ holdings: [] });
+    if (!session)
+      return NextResponse.json({ holdings: [] });
 
     const email = session.user.email;
 
-    console.log("Querying holdings for:", email); // 🔥 CHECK THIS
-
-    const holdings = await Holding.find({ userId: email });
+    const holdings = await Holding.find({ userEmail: email });
 
     return NextResponse.json({ holdings });
-  } catch (error) {
-    return NextResponse.json(
-      { error: "Server Error", details: error.message },
-      { status: 500 }
-    );
+  } catch (err) {
+    console.error(err);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
