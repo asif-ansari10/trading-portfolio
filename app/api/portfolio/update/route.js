@@ -1,20 +1,21 @@
-import {  connectToDB  } from "@/lib/db";
-import Portfolio from "@/models/Portfolio";
-import { verifyToken } from "@/utils/verifyToken";
+import { connectToDB } from "@/lib/db";
+import Holding from "@/models/Holding";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 export async function POST(req) {
-  await  connectToDB ();
+  await connectToDB();
 
-  const user = verifyToken(req);
-  if (!user) return Response.json({ error: "Unauthorized" });
+  const session = await getServerSession(authOptions);
+  if (!session) return Response.json({ error: "Unauthorized" });
 
-  const { asset, avgBuyPrice, quantity, currentPrice } = await req.json();
+  const { asset, quantity, buyPrice, buyDate, tradeType, summary } = await req.json();
 
-  const holding = await Portfolio.findOneAndUpdate(
-    { userId: user.id, asset },
-    { avgBuyPrice, quantity, currentPrice },
+  const holding = await Holding.findOneAndUpdate(
+    { userId: session.user.id, asset },
+    { quantity, buyPrice, buyDate, tradeType, summary },
     { upsert: true, new: true }
   );
 
-  return Response.json({ message: "Portfolio updated", holding });
+  return Response.json({ message: "Holding updated", holding });
 }

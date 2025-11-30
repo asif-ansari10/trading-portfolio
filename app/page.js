@@ -11,12 +11,12 @@ import ProfitStats from "@/components/ProfitStats";
 import TradeCard from "@/components/TradeCard";
 
 export default function Dashboard() {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
 
   const [trades, setTrades] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // LOAD TRADES ONLY WHEN LOGGED-IN
+  // LOAD TRADES
   useEffect(() => {
     async function fetchTrades() {
       try {
@@ -45,14 +45,43 @@ export default function Dashboard() {
     fetchTrades();
   }, [session]);
 
-  const totalProfit = trades.reduce(
+  // ------------------------------
+  // MONTH-WISE CALCULATION
+  // ------------------------------
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+
+  // Filter trades for THIS month
+  const monthlyTrades = trades.filter((t) => {
+    const d = new Date(t.sellDate || t.date);
+    return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+  });
+
+  // Total Monthly Profit
+  const totalProfit = monthlyTrades.reduce(
     (sum, t) => sum + (Number(t.profit) || 0),
     0
   );
 
-  const successRate = trades.length
-    ? ((trades.filter((t) => Number(t.profit) > 0).length / trades.length) * 100).toFixed(1)
+  //sort 
+const sortedMonthlyTrades = [...monthlyTrades].sort(
+  (a, b) => new Date(a.sellDate || a.date) - new Date(b.sellDate || b.date)
+);
+  // Monthly success rate
+  const successRate = monthlyTrades.length
+    ? (
+        (monthlyTrades.filter((t) => Number(t.profit) > 0).length /
+          monthlyTrades.length) *
+        100
+      ).toFixed(1)
     : 0;
+// DEBUG: Check trades and profit types
+console.log("Monthly Trades: ", monthlyTrades);
+console.log("Profit Types:", monthlyTrades.map(t => typeof t.profit));
+console.log("Raw Profits:", monthlyTrades.map(t => t.profit));
+  // Monthly total trades
+  const totalMonthlyTrades = monthlyTrades.length;
 
   return (
     <div className="pt-10 pb-20">
@@ -62,15 +91,15 @@ export default function Dashboard() {
         Dashboard Overview
       </h1>
 
-      {/* ALWAYS SHOW ZERO SCORE WHEN NOT LOGGED IN */}
+      {/* KPI CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <KPIBox title="Total Profit" value={`₹${totalProfit.toFixed(2)}`} icon="💰" />
-        <KPIBox title="Total Trades" value={trades.length} icon="📊" />
-        <KPIBox title="Success Rate" value={`${successRate}%`} icon="🔥" />
+        <KPIBox title="Total Profit (This Month)" value={`₹${totalProfit.toFixed(2)}`} icon="💰" />
+        <KPIBox title="Total Trades (This Month)" value={totalMonthlyTrades} icon="📊" />
+        <KPIBox title="Success Rate (This Month)" value={`${successRate}%`} icon="🔥" />
       </div>
 
-      {/* HIDE actual data when not logged in */}
-       (
+      {/* ONLY SHOW DATA IF LOGGED IN */}
+      
         <>
           {/* MONTHLY PROFIT CHART */}
           <div className="mt-12 bg-white dark:bg-[#111827] shadow-xl rounded-xl p-6">
@@ -78,10 +107,19 @@ export default function Dashboard() {
               Monthly Profit Trend
             </h2>
 
-            <ChartComponent
-              data={trades.map((t) => Number(t.profit) || 0)}
-              height={250}
-            />
+            {monthlyTrades.length > 0 && (
+
+
+
+
+
+<ChartComponent
+  data={sortedMonthlyTrades.map((t) => Number(t.profit) || 0)}
+  height={250}
+/>
+
+)}
+            
           </div>
 
           {/* RECENT TRADES */}
@@ -91,7 +129,7 @@ export default function Dashboard() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {trades
-              .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+              .sort((a, b) => new Date(b.sellDate) - new Date(a.sellDate))
               .slice(0, 10)
               .map((trade) => (
                 <TradeCard key={trade._id} trade={trade} />
@@ -100,21 +138,21 @@ export default function Dashboard() {
 
           {/* CALENDAR HEATMAP */}
           <div className="mt-16">
-            <CalendarHeatmap trades={trades} />
+            <CalendarHeatmap trades={monthlyTrades} />
           </div>
 
-          {/* TRADING HISTORY */}
+           {/* FULL TRADING HISTORY */}
           <div className="mt-16">
             <TradingHistory trades={trades} />
           </div>
-
-          {/* PROFIT STATS */}
+          
+          {/* MONTHLY PROFIT STATS */}
           <div className="mt-16">
-            <ProfitStats trades={trades} />
+            <ProfitStats trades={monthlyTrades} />
           </div>
-        </>
-      )
 
+         
+        </>
     </div>
   );
 }
