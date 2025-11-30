@@ -1,6 +1,6 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import connectDB from "@/lib/db";
+import  {connectToDB}  from "@/lib/db";
 import Trade from "@/models/Trade";
 
 export async function POST(req) {
@@ -9,7 +9,7 @@ export async function POST(req) {
   if (!session)
     return Response.json({ error: "Not authenticated" }, { status: 401 });
 
-  await connectDB();
+  await  connectToDB ();
 
   const body = await req.json();
 

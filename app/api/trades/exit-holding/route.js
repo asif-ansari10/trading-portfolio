@@ -1,7 +1,7 @@
 // app/api/trades/exit-holding/route.js
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";   // ✅ FIXED
+import { authOptions } from "@/lib/auth";  
 import {connectToDB} from "@/lib/db";
 import Holding from "@/models/Holding";
 import CompletedTrade from "@/models/CompletedTrade";
