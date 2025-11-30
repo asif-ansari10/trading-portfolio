@@ -1,9 +1,9 @@
-import { connectDB } from "@/lib/db";
+import {  connectToDB  } from "@/lib/db";
 import Portfolio from "@/models/Portfolio";
 import { verifyToken } from "@/utils/verifyToken";
 
 export async function POST(req) {
-  await connectDB();
+  await  connectToDB ();
 
   const user = verifyToken(req);
   if (!user) return Response.json({ error: "Unauthorized" });

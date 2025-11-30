@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import connectDB from "../../../../lib/db";
+import { connectToDB } from "../../../../lib/db";
 import User from "../../../../models/User";
 import { NextResponse } from "next/server";
 
@@ -7,7 +7,7 @@ export async function POST(req) {
   try {
     console.log("➡ REGISTER API HIT");
 
-    await connectDB(); // This logs connection status
+    await  connectToDB (); // This logs connection status
 
     const body = await req.json();
     console.log("📩 Body:", body);
